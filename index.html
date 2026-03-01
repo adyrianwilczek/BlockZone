@@ -94,7 +94,7 @@ Legs <input type="color" id="legsColor"><br><br>
 <!-- ABOUT -->
 <div id="about" class="hidden section">
 <h2>About</h2>
-<p>About Us – BlockZone
+<p>TAbout Us – BlockZone
 
 Welcome to BlockZone, a creative online platform where imagination meets fun! Here, you can build, play, and explore countless games made by the community. Our mission is to give everyone a space to create, share, and enjoy interactive experiences safely and easily.
 
@@ -110,6 +110,13 @@ Join us and powered by imagination, let your adventure begin!</p>
 <button onclick="backHome()">Back</button>
 </div>
 
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden section">
+<h3>Admin Panel</h3>
+<button onclick="toggleServer()">Toggle Server</button>
+<button onclick="viewAllPlayers()">View All Players</button>
+</div>
+
 <script>
 // --- SYSTEM ---
 let currentUser=null;
@@ -122,7 +129,7 @@ const ADMIN_USER="Adrian";
 const ADMIN_PASS="admin123";
 
 // LANGUAGES
-let currentLang = localStorage.getItem("lang") || "pl";
+let currentLang = localStorage.getItem("lang") || "en";
 const translations = {
 pl:{home:"Dom",games:"Gry",avatar:"Awatar",news:"Wiadomości",about:"o nas",logout:"Wyloguj",register:"Zarejestruj",login:"Zaloguj",blocks:"Bloki",wrong:"Zły login!",exists:"Nazwa użytkownika jest już zajęta!",serverError:"Nie możesz dołączyć powód: Błąd"},
 en:{home:"Home",games:"Games",avatar:"Avatar",news:"News",about:"About",logout:"Logout",register:"Register",login:"Login",blocks:"Blocks",wrong:"Wrong login!",exists:"Username already exists!",serverError:"You can't join reason: Error"},
@@ -132,16 +139,6 @@ zh:{home:"主页",games:"游戏",avatar:"头像",news:"新闻",about:"关于",lo
 };
 
 function t(k){return translations[currentLang][k];}
-
-// --- UPDATE TEXTS ---
-function updateTexts(){
-document.querySelector("#home h2").textContent=t("home");
-document.querySelector("#games h2").textContent=t("games");
-document.querySelector("#avatar h2").textContent=t("avatar");
-document.querySelector("#news h2").textContent=t("news");
-document.querySelector("#about h2").textContent=t("about");
-document.querySelector("#home div").innerHTML=t("blocks")+": <span id='blocks'>"+blocks+"</span>";
-}
 
 // --- REGISTER / LOGIN ---
 function register(){
@@ -171,6 +168,9 @@ auth.classList.add("hidden");
 topBar.classList.remove("hidden");
 home.classList.remove("hidden");
 
+// POKAŻ PANEL ADMINA JEŚLI ADMIN
+if(currentUser.isAdmin) adminPanel.classList.remove("hidden");
+
 updateTopBar();
 updateBlocks();
 loadAvatar();
@@ -192,13 +192,6 @@ btn.onclick=()=>openTab(tab.toLowerCase());
 topBar.appendChild(btn);
 });
 
-if(currentUser.isAdmin){
-const adminBtn=document.createElement("button");
-adminBtn.textContent="Toggle Server";
-adminBtn.onclick=()=>{serverOnline=!serverOnline;alert("Server: "+serverOnline)};
-topBar.appendChild(adminBtn);
-}
-
 const langSelect=document.createElement("select");
 ["pl","en","es","ru","zh"].forEach(l=>{
 const opt=document.createElement("option");
@@ -211,6 +204,20 @@ topBar.appendChild(langSelect);
 
 const logout=document.createElement("button");
 logout.textContent=t("logout");logout.onclick=()=>location.reload();topBar.appendChild(logout);
+}
+
+// --- ADMIN FUNCTIONS ---
+function toggleServer(){
+serverOnline=!serverOnline;
+alert("Server Online: "+serverOnline);
+}
+
+function viewAllPlayers(){
+if(!currentUser || !currentUser.isAdmin){alert("Not admin!"); return;}
+let usersList=JSON.parse(localStorage.getItem("users"))||[];
+let msg="Registered Users:\n";
+usersList.forEach(u=>{msg+=`Username: ${u.username}, Blocks: ${localStorage.getItem("blocks_"+u.username)||0}\n`;});
+alert(msg);
 }
 
 // --- TABS ---
@@ -269,8 +276,8 @@ const badgesEl = document.getElementById("profileBadges");
 badgesEl.innerHTML = "<strong>Badges:</strong><br>";
 if(blocks>=1000000) badgesEl.innerHTML += "🏆 Milioner<br>";
 if(currentUser.isAdmin) badgesEl.innerHTML += "👑 Admin<br>";
-let users = JSON.parse(localStorage.getItem("users")) || [];
-let userObj = users.find(u=>u.username===currentUser.name);
+let usersList = JSON.parse(localStorage.getItem("users")) || [];
+let userObj = usersList.find(u=>u.username===currentUser.name);
 if(userObj){
 let now = new Date();
 let created = userObj.created || now.getTime();
@@ -281,5 +288,4 @@ if(blocks>=10000) badgesEl.innerHTML += "💎 Clicker Master<br>";
 
 </script>
 </body>
-
 </html>
