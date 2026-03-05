@@ -115,6 +115,12 @@ Join us and powered by imagination, let your adventure begin!</p>
 <h3>Admin Panel</h3>
 <button onclick="toggleServer()">Toggle Server</button>
 <button onclick="viewAllPlayers()">View All Players</button>
+<hr>
+<h4>Set Blocks for Player</h4>
+<input id="adminUserInput" placeholder="Username">
+<input id="adminBlocksInput" type="number" placeholder="Blocks">
+<button onclick="setBlocksForPlayer()">Set Blocks</button>
+<div id="adminMsg" style="color:lightgreen;margin-top:5px"></div>
 </div>
 
 <script>
@@ -144,7 +150,7 @@ function t(k){return translations[currentLang][k];}
 function register(){
 const u=username.value.trim();
 const p=password.value.trim();
-if(!u||!p)return;
+if(!u||!p){authMsg.textContent="Enter username & password"; return;}
 let users=JSON.parse(localStorage.getItem("users"))||[];
 if(users.find(x=>x.username===u)){authMsg.textContent=t("exists");return;}
 users.push({username:u,password:p,created:new Date().getTime()});
@@ -168,7 +174,7 @@ auth.classList.add("hidden");
 topBar.classList.remove("hidden");
 home.classList.remove("hidden");
 
-// POKAŻ PANEL ADMINA JEŚLI ADMIN
+// Pokaż panel admina jeśli admin
 if(currentUser.isAdmin) adminPanel.classList.remove("hidden");
 
 updateTopBar();
@@ -207,17 +213,26 @@ logout.textContent=t("logout");logout.onclick=()=>location.reload();topBar.appen
 }
 
 // --- ADMIN FUNCTIONS ---
-function toggleServer(){
-serverOnline=!serverOnline;
-alert("Server Online: "+serverOnline);
-}
-
+function toggleServer(){serverOnline=!serverOnline;alert("Server Online: "+serverOnline);}
 function viewAllPlayers(){
 if(!currentUser || !currentUser.isAdmin){alert("Not admin!"); return;}
 let usersList=JSON.parse(localStorage.getItem("users"))||[];
 let msg="Registered Users:\n";
 usersList.forEach(u=>{msg+=`Username: ${u.username}, Blocks: ${localStorage.getItem("blocks_"+u.username)||0}\n`;});
 alert(msg);
+}
+
+// --- NOWA FUNKCJA: USTAW BLOKI DLA GRACZA ---
+function setBlocksForPlayer(){
+const uname = document.getElementById("adminUserInput").value.trim();
+const val = Number(document.getElementById("adminBlocksInput").value);
+if(!uname || isNaN(val) || val<0){adminMsg.textContent="Invalid input!"; return;}
+let usersList=JSON.parse(localStorage.getItem("users"))||[];
+const user = usersList.find(u=>u.username===uname);
+if(!user){adminMsg.textContent="User not found!"; return;}
+localStorage.setItem("blocks_"+uname,val);
+adminMsg.textContent=`Set ${val} Blocks for ${uname}`;
+if(currentUser.name===uname) blocks=val; updateBlocks();
 }
 
 // --- TABS ---
@@ -230,7 +245,7 @@ function backHome(){document.querySelectorAll(".section").forEach(s=>s.classList
 
 // --- GAME LOGIC ---
 function addBlock(){blocks++;localStorage.setItem("blocks_"+currentUser.name,blocks);updateBlocks();}
-function updateBlocks(){blocksEl=document.getElementById("blocks");clickBlocksEl=document.getElementById("clickBlocks");blocksEl.textContent=blocks;clickBlocksEl.textContent=blocks;}
+function updateBlocks(){document.getElementById("blocks").textContent=blocks;document.getElementById("clickBlocks").textContent=blocks;}
 function checkGuess(){const val=Number(guessInput.value);if(val===secretNumber){guessMsg.textContent="Correct! +5 Blocks";blocks+=5;secretNumber=Math.floor(Math.random()*10)+1;}else{guessMsg.textContent="Wrong!";}localStorage.setItem("blocks_"+currentUser.name,blocks);updateBlocks();}
 
 // --- AVATAR ---
@@ -281,11 +296,22 @@ let userObj = usersList.find(u=>u.username===currentUser.name);
 if(userObj){
 let now = new Date();
 let created = userObj.created || now.getTime();
-if((now.getTime() - created) < 24*60*60*1000) badgesEl.innerHTML += "🌱 Nowy Gracz<br>";
+if((now.getTime() - created) < 24*60*60*1000) badgesEl.innerHTML += "🌱 New Player<br>";
+
+// 1️⃣ Veteran – konto starsze niż miesiąc
+if((now.getTime() - created) >= 30*24*60*60*1000) badgesEl.innerHTML += "🛡️ Veteran<br>";
+
+// 2️⃣ Good Boy – zagranie w cokolwiek, od początku każdy ma
+badgesEl.innerHTML += "👍 Good Boy<br>";
 }
 if(blocks>=10000) badgesEl.innerHTML += "💎 Clicker Master<br>";
 }
 
+// --- UPDATE TEXTS ON LANG CHANGE ---
+function updateTexts(){
+document.getElementById("authTitle").textContent=t("login") + " / " + t("register");
+updateBlocks();
+}
 </script>
 </body>
 </html>
