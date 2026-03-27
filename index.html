@@ -1,317 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>BlockZone Platform</title>
+<title>AdiśWiki</title>
 <style>
-body{margin:0;font-family:Arial;background:#1b1b1b;color:white;text-align:center}
-#topBar{background:#111;padding:10px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-button{padding:6px 12px;cursor:pointer}
-.hidden{display:none}
-.section{margin-top:30px}
-input,select,textarea{padding:5px}
-.avatar{margin:20px auto;width:120px}
-.part{margin:2px auto}
-.head{width:50px;height:50px}
-.body{width:60px;height:70px}
-.legs{width:60px;height:60px}
+body { font-family: Arial; margin:0; background:#f8f9fa; color:#000; transition: background 0.3s, color 0.3s; }
+header { background:#3366cc; color:white; padding:10px; text-align:center; display:flex; justify-content: space-between; align-items: center; }
+#app { padding:20px; }
+input, textarea { width:100%; margin-bottom:10px; padding:6px; font-size:14px; }
+textarea { height:150px; }
+button { padding:6px 10px; margin:3px; cursor:pointer; }
+.article { background:white; padding:10px; margin-top:10px; border:1px solid #ccc; position:relative; transition: background 0.3s, color 0.3s; }
+.delete-btn { position:absolute; right:10px; top:10px; background:red; color:white; border:none; cursor:pointer; }
+#admin-panel { background:#e2e2e2; padding:10px; margin-bottom:20px; transition: background 0.3s; }
+
+/* Tryb ciemny */
+body.dark { background:#121212; color:#f1f1f1; }
+body.dark .article { background:#1e1e1e; color:#f1f1f1; border:1px solid #333; }
+body.dark #admin-panel { background:#1e1e1e; color:#f1f1f1; }
+body.dark input, body.dark textarea { background:#2b2b2b; color:#f1f1f1; border:1px solid #444; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN / REGISTER -->
-<div id="auth">
-<h2 id="authTitle">Login / Register</h2>
-<input id="username" placeholder="Username"><br><br>
-<input id="password" type="password" placeholder="Password"><br><br>
-<button onclick="login()">Login</button>
-<button onclick="register()">Register</button>
-<div id="authMsg" style="color:red;margin-top:10px"></div>
+<header>
+<h2>AdiśWiki</h2>
+<button onclick="toggleTheme()">🌙 Tryb ciemny/jasny</button>
+</header>
+
+<div id="app">
+
+<div id="admin-panel">
+<h3>Panel Admina</h3>
+<input type="password" id="admin-password" placeholder="Hasło admina">
+<button onclick="loginAdmin()">Zaloguj</button>
+<span id="admin-status" style="margin-left:10px; font-weight:bold;"></span>
 </div>
 
-<!-- TOP BAR -->
-<div id="topBar" class="hidden"></div>
+<h3>Nowy artykuł</h3>
+<input id="title" placeholder="Tytuł artykułu">
+<textarea id="text" placeholder="Treść artykułu..."></textarea>
+<button onclick="addArticle()">Dodaj artykuł</button>
 
-<!-- HOME -->
-<div id="home" class="hidden section">
-<h2>Home</h2>
-<div>Blocks: <span id="blocks">0</span></div>
-</div>
+<h3>Szukaj artykułu</h3>
+<input id="search" placeholder="Wpisz tytuł..." oninput="renderArticles()">
 
-<!-- GAMES -->
-<div id="games" class="hidden section">
-<h2>Games</h2>
-<button onclick="openClicker()">Clicker Game</button>
-<button onclick="openGuess()">Guess Number</button>
-<div id="serverError" style="color:red;margin-top:10px"></div>
-</div>
+<h3>Artykuły</h3>
+<div id="articles"></div>
 
-<!-- CLICKER -->
-<div id="clicker" class="hidden section">
-<h2>Clicker</h2>
-<div>Blocks: <span id="clickBlocks">0</span></div><br>
-<button onclick="addBlock()">+1 Block</button><br><br>
-<button onclick="backHome()">Back</button>
-</div>
-
-<!-- GUESS GAME -->
-<div id="guess" class="hidden section">
-<h2>Guess Number (1-10)</h2>
-<input id="guessInput"><br><br>
-<button onclick="checkGuess()">Guess</button>
-<div id="guessMsg"></div><br>
-<button onclick="backHome()">Back</button>
-</div>
-
-<!-- AVATAR -->
-<div id="avatar" class="hidden section">
-<h2>Avatar</h2>
-<div class="avatar">
-<div id="head" class="part head"></div>
-<div id="body" class="part body"></div>
-<div id="legs" class="part legs"></div>
-</div>
-
-Head <input type="color" id="headColor"><br><br>
-Body <input type="color" id="bodyColor"><br><br>
-Legs <input type="color" id="legsColor"><br><br>
-
-<button onclick="saveAvatar()">Save</button><br><br>
-<button onclick="backHome()">Back</button>
-</div>
-
-<!-- NEWS -->
-<div id="news" class="hidden section">
-<h2>News</h2>
-<div id="newsContent"></div><br>
-<div id="newsEditor" class="hidden">
-<textarea id="newsInput" style="width:80%;height:80px"></textarea><br>
-<button onclick="saveNews()">Save News</button>
-</div>
-<button onclick="backHome()">Back</button>
-</div>
-
-<!-- ABOUT -->
-<div id="about" class="hidden section">
-<h2>About</h2>
-<p>TAbout Us – BlockZone
-
-Welcome to BlockZone, a creative online platform where imagination meets fun! Here, you can build, play, and explore countless games made by the community. Our mission is to give everyone a space to create, share, and enjoy interactive experiences safely and easily.
-
-What we offer:
-
-Games for everyone – from simple fun to challenging adventures.
-Customizable avatars – express yourself with unique looks and accessories.
-Currency system (Blocks) – earn and spend Blocks to unlock new items and features.
-News & updates – stay informed about the latest additions and events.
-Community & support – a friendly environment for players of all ages.
-At BlockZone, creativity has no limits. Whether you’re building your dream world, competing in exciting challenges, or just exploring, there’s always something new to discover.
-Join us and powered by imagination, let your adventure begin!</p>
-<button onclick="backHome()">Back</button>
-</div>
-
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="hidden section">
-<h3>Admin Panel</h3>
-<button onclick="toggleServer()">Toggle Server</button>
-<button onclick="viewAllPlayers()">View All Players</button>
-<hr>
-<h4>Set Blocks for Player</h4>
-<input id="adminUserInput" placeholder="Username">
-<input id="adminBlocksInput" type="number" placeholder="Blocks">
-<button onclick="setBlocksForPlayer()">Set Blocks</button>
-<div id="adminMsg" style="color:lightgreen;margin-top:5px"></div>
 </div>
 
 <script>
-// --- SYSTEM ---
-let currentUser=null;
-let blocks=0;
-let serverOnline=true;
-let secretNumber=Math.floor(Math.random()*10)+1;
+const ADMIN_PASSWORD = "Adminpanel48";
+let isAdmin = false;
+let articles = JSON.parse(localStorage.getItem("articles") || "[]");
 
-// ADMIN
-const ADMIN_USER="Adrian";
-const ADMIN_PASS="admin123";
-
-// LANGUAGES
-let currentLang = localStorage.getItem("lang") || "en";
-const translations = {
-pl:{home:"Dom",games:"Gry",avatar:"Awatar",news:"Wiadomości",about:"o nas",logout:"Wyloguj",register:"Zarejestruj",login:"Zaloguj",blocks:"Bloki",wrong:"Zły login!",exists:"Nazwa użytkownika jest już zajęta!",serverError:"Nie możesz dołączyć powód: Błąd"},
-en:{home:"Home",games:"Games",avatar:"Avatar",news:"News",about:"About",logout:"Logout",register:"Register",login:"Login",blocks:"Blocks",wrong:"Wrong login!",exists:"Username already exists!",serverError:"You can't join reason: Error"},
-es:{home:"Inicio",games:"Juegos",avatar:"Avatar",news:"Noticias",about:"Acerca de",logout:"Salir",register:"Registrar",login:"Entrar",blocks:"Bloques",wrong:"Login incorrecto!",exists:"Usuario ya existe!",serverError:"No puedes unirte razón: Error"},
-ru:{home:"Главная",games:"Игры",avatar:"Аватар",news:"Новости",about:"О проекте",logout:"Выйти",register:"Регистрация",login:"Вход",blocks:"Блоки",wrong:"Неверный вход!",exists:"Имя занято!",serverError:"Нельзя войти причина: Ошибка"},
-zh:{home:"主页",games:"游戏",avatar:"头像",news:"新闻",about:"关于",logout:"退出",register:"注册",login:"登录",blocks:"方块",wrong:"登录错误!",exists:"用户名已存在!",serverError:"无法加入 原因: 错误"}
-};
-
-function t(k){return translations[currentLang][k];}
-
-// --- REGISTER / LOGIN ---
-function register(){
-const u=username.value.trim();
-const p=password.value.trim();
-if(!u||!p){authMsg.textContent="Enter username & password"; return;}
-let users=JSON.parse(localStorage.getItem("users"))||[];
-if(users.find(x=>x.username===u)){authMsg.textContent=t("exists");return;}
-users.push({username:u,password:p,created:new Date().getTime()});
-localStorage.setItem("users",JSON.stringify(users));
-authMsg.style.color="lightgreen";
-authMsg.textContent="Registered! You can login now.";
+// ===== Tryb ciemny/jasny =====
+function toggleTheme(){
+  document.body.classList.toggle("dark");
 }
 
-function login(){
-const u=username.value.trim();
-const p=password.value.trim();
-let users=JSON.parse(localStorage.getItem("users"))||[];
-const found=users.find(x=>x.username===u && x.password===p);
+// ===== Funkcje artykułów =====
+function saveArticles(){ localStorage.setItem("articles", JSON.stringify(articles)); }
 
-if(!found && !(u===ADMIN_USER && p===ADMIN_PASS)){authMsg.textContent=t("wrong");return;}
+function renderArticles(){
+  const container = document.getElementById("articles");
+  container.innerHTML = "";
 
-currentUser={name:u,isAdmin:(u===ADMIN_USER && p===ADMIN_PASS)};
-blocks=Number(localStorage.getItem("blocks_"+u))||0;
+  const query = document.getElementById("search")?.value.toLowerCase() || "";
 
-auth.classList.add("hidden");
-topBar.classList.remove("hidden");
-home.classList.remove("hidden");
-
-// Pokaż panel admina jeśli admin
-if(currentUser.isAdmin) adminPanel.classList.remove("hidden");
-
-updateTopBar();
-updateBlocks();
-loadAvatar();
-loadNews();
-updateTexts();
+  articles
+    .filter(a => a.title.toLowerCase().includes(query))
+    .forEach((a,index)=>{
+      let div = document.createElement("div");
+      div.className = "article";
+      div.innerHTML = "<h3>"+a.title+"</h3><p>"+a.text.replace(/\n/g,"<br>")+"</p>";
+      if(isAdmin){
+        let btn = document.createElement("button");
+        btn.className="delete-btn";
+        btn.textContent="Usuń";
+        btn.onclick = ()=>{ articles.splice(index,1); saveArticles(); renderArticles(); };
+        div.appendChild(btn);
+      }
+      container.appendChild(div);
+    });
 }
 
-// --- TOPBAR ---
-function updateTopBar(){
-topBar.innerHTML="";
-const name=document.createElement("span");name.textContent=currentUser.name;
-name.style.cursor="pointer";name.onclick=openProfile;
-topBar.appendChild(name);
-
-["Home","Games","Avatar","News","About"].forEach(tab=>{
-const btn=document.createElement("button");
-btn.textContent=t(tab.toLowerCase());
-btn.onclick=()=>openTab(tab.toLowerCase());
-topBar.appendChild(btn);
-});
-
-const langSelect=document.createElement("select");
-["pl","en","es","ru","zh"].forEach(l=>{
-const opt=document.createElement("option");
-opt.value=l;opt.textContent=l.toUpperCase();
-if(l===currentLang)opt.selected=true;
-langSelect.appendChild(opt);
-});
-langSelect.onchange=(e)=>{currentLang=e.target.value;localStorage.setItem("lang",currentLang);updateTopBar();updateTexts();}
-topBar.appendChild(langSelect);
-
-const logout=document.createElement("button");
-logout.textContent=t("logout");logout.onclick=()=>location.reload();topBar.appendChild(logout);
+function addArticle(){
+  const title = document.getElementById("title").value;
+  const text = document.getElementById("text").value;
+  if(!title || !text){ alert("Uzupełnij pola!"); return; }
+  articles.unshift({ title, text });
+  saveArticles();
+  document.getElementById("title").value="";
+  document.getElementById("text").value="";
+  renderArticles();
 }
 
-// --- ADMIN FUNCTIONS ---
-function toggleServer(){serverOnline=!serverOnline;alert("Server Online: "+serverOnline);}
-function viewAllPlayers(){
-if(!currentUser || !currentUser.isAdmin){alert("Not admin!"); return;}
-let usersList=JSON.parse(localStorage.getItem("users"))||[];
-let msg="Registered Users:\n";
-usersList.forEach(u=>{msg+=`Username: ${u.username}, Blocks: ${localStorage.getItem("blocks_"+u.username)||0}\n`;});
-alert(msg);
+function loginAdmin(){
+  const pass = document.getElementById("admin-password").value;
+  if(pass===ADMIN_PASSWORD){
+    isAdmin=true;
+    document.getElementById("admin-status").textContent="Zalogowany jako admin ✅";
+    renderArticles();
+  } else {
+    alert("Błędne hasło!");
+  }
 }
 
-// --- NOWA FUNKCJA: USTAW BLOKI DLA GRACZA ---
-function setBlocksForPlayer(){
-const uname = document.getElementById("adminUserInput").value.trim();
-const val = Number(document.getElementById("adminBlocksInput").value);
-if(!uname || isNaN(val) || val<0){adminMsg.textContent="Invalid input!"; return;}
-let usersList=JSON.parse(localStorage.getItem("users"))||[];
-const user = usersList.find(u=>u.username===uname);
-if(!user){adminMsg.textContent="User not found!"; return;}
-localStorage.setItem("blocks_"+uname,val);
-adminMsg.textContent=`Set ${val} Blocks for ${uname}`;
-if(currentUser.name===uname) blocks=val; updateBlocks();
-}
-
-// --- TABS ---
-function openTab(tab){document.querySelectorAll(".section").forEach(s=>s.classList.add("hidden"));document.getElementById(tab).classList.remove("hidden");}
-
-// --- GAMES ---
-function openClicker(){if(!serverOnline){serverError.textContent=t("serverError");return;}openTab("clicker");}
-function openGuess(){if(!serverOnline){serverError.textContent=t("serverError");return;}openTab("guess");}
-function backHome(){document.querySelectorAll(".section").forEach(s=>s.classList.add("hidden"));home.classList.remove("hidden");}
-
-// --- GAME LOGIC ---
-function addBlock(){blocks++;localStorage.setItem("blocks_"+currentUser.name,blocks);updateBlocks();}
-function updateBlocks(){document.getElementById("blocks").textContent=blocks;document.getElementById("clickBlocks").textContent=blocks;}
-function checkGuess(){const val=Number(guessInput.value);if(val===secretNumber){guessMsg.textContent="Correct! +5 Blocks";blocks+=5;secretNumber=Math.floor(Math.random()*10)+1;}else{guessMsg.textContent="Wrong!";}localStorage.setItem("blocks_"+currentUser.name,blocks);updateBlocks();}
-
-// --- AVATAR ---
-function saveAvatar(){const data={head:headColor.value,body:bodyColor.value,legs:legsColor.value};localStorage.setItem("avatar_"+currentUser.name,JSON.stringify(data));applyAvatar(data);}
-function loadAvatar(){const saved=localStorage.getItem("avatar_"+currentUser.name);if(saved)applyAvatar(JSON.parse(saved));}
-function applyAvatar(d){head.style.background=d.head;body.style.background=d.body;legs.style.background=d.legs;headColor.value=d.head;bodyColor.value=d.body;legsColor.value=d.legs;}
-
-// --- NEWS ---
-function saveNews(){localStorage.setItem("news",newsInput.value);loadNews();}
-function loadNews(){newsContent.textContent=localStorage.getItem("news")||"No news.";if(currentUser.isAdmin)newsEditor.classList.remove("hidden");}
-
-// --- PROFILE ---
-function openProfile(){
-document.querySelectorAll(".section").forEach(s=>s.classList.add("hidden"));
-let profile = document.getElementById("profile");
-if(!profile){
-profile = document.createElement("div");
-profile.id = "profile";
-profile.className = "section";
-profile.innerHTML = `
-<h2>Profile</h2>
-<div id="profileAvatar" class="avatar">
-  <div id="pHead" class="part head"></div>
-  <div id="pBody" class="part body"></div>
-  <div id="pLegs" class="part legs"></div>
-</div>
-<div id="profileInfo"></div>
-<div id="profileBadges"></div>
-<br><button onclick="backHome()">Back</button>
-`;
-document.body.appendChild(profile);
-}
-profile.classList.remove("hidden");
-
-const saved = JSON.parse(localStorage.getItem("avatar_"+currentUser.name) || '{"head":"#ffff00","body":"#00ff00","legs":"#0000ff"}');
-document.getElementById("pHead").style.background = saved.head;
-document.getElementById("pBody").style.background = saved.body;
-document.getElementById("pLegs").style.background = saved.legs;
-
-document.getElementById("profileInfo").innerHTML = `<strong>${currentUser.name}</strong><br>Blocks: ${blocks}`;
-
-const badgesEl = document.getElementById("profileBadges");
-badgesEl.innerHTML = "<strong>Badges:</strong><br>";
-if(blocks>=1000000) badgesEl.innerHTML += "🏆 Milioner<br>";
-if(currentUser.isAdmin) badgesEl.innerHTML += "👑 Admin<br>";
-let usersList = JSON.parse(localStorage.getItem("users")) || [];
-let userObj = usersList.find(u=>u.username===currentUser.name);
-if(userObj){
-let now = new Date();
-let created = userObj.created || now.getTime();
-if((now.getTime() - created) < 24*60*60*1000) badgesEl.innerHTML += "🌱 New Player<br>";
-
-// 1️⃣ Veteran – konto starsze niż miesiąc
-if((now.getTime() - created) >= 30*24*60*60*1000) badgesEl.innerHTML += "🛡️ Veteran<br>";
-
-// 2️⃣ Good Boy – zagranie w cokolwiek, od początku każdy ma
-badgesEl.innerHTML += "👍 Good Boy<br>";
-}
-if(blocks>=10000) badgesEl.innerHTML += "💎 Clicker Master<br>";
-}
-
-// --- UPDATE TEXTS ON LANG CHANGE ---
-function updateTexts(){
-document.getElementById("authTitle").textContent=t("login") + " / " + t("register");
-updateBlocks();
-}
+renderArticles();
 </script>
+
 </body>
 </html>
